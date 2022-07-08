@@ -1,0 +1,5 @@
+error: The state of your app may never be empty
+ --> tests/failing/01-does-not-support-unit-struct.rs:7:1
+  |
+7 | pub struct MyState;
+  | ^^^^^^^^^^^^^^^^^^^

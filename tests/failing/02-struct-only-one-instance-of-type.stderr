@@ -1,0 +1,9 @@
+error: Type String is used multiple times in the state
+
+         = note: The state may only contain exactly one instance of a given type
+         = help: Consider wrapping this type in a newtype, e.g. pub struct HttpClient(String);
+
+ --> tests/failing/02-struct-only-one-instance-of-type.rs:9:5
+  |
+9 |     http_client: String,
+  |     ^^^^^^^^^^^

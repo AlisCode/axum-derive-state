@@ -10,7 +10,7 @@ use syn::{spanned::Spanned, Fields, Ident, ItemStruct, LitInt, Type};
 #[proc_macro_derive(State)]
 pub fn derive_state_attr(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = TokenStream::from(input);
-    let extracted_fields = extract_fields(input.clone());
+    let extracted_fields = parse_axum_state_macro_input(input.clone());
     match extracted_fields {
         Ok(input) => {
             let output = generate_from_impls(input);
@@ -60,23 +60,25 @@ pub fn derive_state_attr(input: proc_macro::TokenStream) -> proc_macro::TokenStr
     };
 }
 
+#[derive(Debug)]
 enum FailingFieldIdent {
     Named(Ident),
     Anonymous,
 }
 
+#[derive(Debug)]
 struct AxumStateMacroInput {
     fields: Vec<FieldDefinition>,
     ident: Ident,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct FieldDefinition {
     name: IdentOrTupleMember,
     r#type: Type,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 enum IdentOrTupleMember {
     Ident(Ident),
     TupleMember(LitInt),
@@ -91,11 +93,13 @@ impl ToTokens for IdentOrTupleMember {
     }
 }
 
+#[derive(Debug)]
 enum AxumStateMacroUnsupportedVariant {
     UnitStruct,
     ExpectedStruct,
 }
 
+#[derive(Debug)]
 enum ExtractFieldError {
     UnsupportedVariant(AxumStateMacroUnsupportedVariant),
     DuplicatedField {
@@ -105,7 +109,9 @@ enum ExtractFieldError {
     },
 }
 
-fn extract_fields(input: TokenStream) -> Result<AxumStateMacroInput, ExtractFieldError> {
+fn parse_axum_state_macro_input(
+    input: TokenStream,
+) -> Result<AxumStateMacroInput, ExtractFieldError> {
     let parsed = syn::parse2::<ItemStruct>(input).map_err(|_| {
         ExtractFieldError::UnsupportedVariant(AxumStateMacroUnsupportedVariant::ExpectedStruct)
     })?;
@@ -178,4 +184,15 @@ fn generate_from_impls(input: AxumStateMacroInput) -> TokenStream {
             )
         })
         .collect()
+}
+
+#[cfg(test)]
+pub mod tests {
+
+    #[test]
+    fn trybuild_tests() {
+        let tests = trybuild::TestCases::new();
+        tests.compile_fail("tests/failing/*.rs");
+        tests.pass("tests/compiling/*.rs");
+    }
 }

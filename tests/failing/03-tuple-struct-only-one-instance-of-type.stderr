@@ -1,0 +1,9 @@
+error: Type String is used multiple times in the state
+
+         = note: The state may only contain exactly one instance of a given type
+         = help: Consider wrapping this type in a newtype, e.g. pub struct MySubstate(String);
+
+ --> tests/failing/03-tuple-struct-only-one-instance-of-type.rs:6:28
+  |
+6 | pub struct MyState(String, String);
+  |                            ^^^^^^
