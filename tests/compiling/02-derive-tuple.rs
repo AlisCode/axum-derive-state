@@ -8,4 +8,9 @@ pub struct HttpClient;
 #[derive(State)]
 pub struct MyAppState(Database, HttpClient);
 
-fn main() {}
+fn test_impl_from<F, T: From<F>>() {}
+
+fn main() {
+    test_impl_from::<MyAppState, Database>();
+    test_impl_from::<MyAppState, HttpClient>();
+}

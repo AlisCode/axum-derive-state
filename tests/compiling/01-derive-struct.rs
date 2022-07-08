@@ -1,4 +1,7 @@
 // Should derive the state just fine
+// This should allow to transform :
+// * from MyAppState to Database
+// * from MyAppState to HttpClient
 
 use derive_state::State;
 
@@ -11,4 +14,9 @@ pub struct MyAppState {
     pub http_client: HttpClient,
 }
 
-fn main() {}
+fn test_impl_from<F, T: From<F>>() {}
+
+fn main() {
+    test_impl_from::<MyAppState, Database>();
+    test_impl_from::<MyAppState, HttpClient>();
+}
