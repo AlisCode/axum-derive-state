@@ -188,11 +188,66 @@ fn generate_from_impls(input: AxumStateMacroInput) -> TokenStream {
 
 #[cfg(test)]
 pub mod tests {
+    use crate::{generate_from_impls, parse_axum_state_macro_input};
+    use quote::{quote, ToTokens};
 
     #[test]
     fn trybuild_tests() {
         let tests = trybuild::TestCases::new();
         tests.compile_fail("tests/failing/*.rs");
         tests.pass("tests/compiling/*.rs");
+    }
+
+    #[test]
+    fn should_derive_from_impls_for_struct() {
+        let input = quote! {
+            pub struct MyState {
+                database: Database,
+                http_client: HttpClient,
+            }
+        };
+        let extracted_fields = parse_axum_state_macro_input(input).unwrap();
+        let token_stream = generate_from_impls(extracted_fields);
+        let expected_impl_blocks = quote! {
+            impl From<MyState> for Database {
+                fn from(state: MyState) -> Database {
+                    state.database
+                }
+            }
+            impl From<MyState> for HttpClient {
+                fn from(state: MyState) -> HttpClient {
+                    state.http_client
+                }
+            }
+        };
+        assert_eq!(
+            token_stream.to_token_stream().to_string(),
+            expected_impl_blocks.to_string()
+        );
+    }
+
+    #[test]
+    fn should_derive_from_impls_for_tuple_struct() {
+        let input = quote! {
+            pub struct MyState(Database, HttpClient);
+        };
+        let extracted_fields = parse_axum_state_macro_input(input).unwrap();
+        let token_stream = generate_from_impls(extracted_fields);
+        let expected_impl_blocks = quote! {
+            impl From<MyState> for Database {
+                fn from(state: MyState) -> Database {
+                    state.0
+                }
+            }
+            impl From<MyState> for HttpClient {
+                fn from(state: MyState) -> HttpClient {
+                    state.1
+                }
+            }
+        };
+        assert_eq!(
+            token_stream.to_token_stream().to_string(),
+            expected_impl_blocks.to_string()
+        );
     }
 }
